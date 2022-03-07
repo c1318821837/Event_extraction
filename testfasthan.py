@@ -4,7 +4,7 @@ import numpy
 import numpy as np
 from fastHan import FastHan
 model=FastHan()
-sentence="大概这时他父亲正在兖州做司马"
+sentence="受《硅谷之火》中创业故事影响，在大学四年级的时候，雷军开始和同学王全国、李儒雄等人创办三色公司。"
 def exchang_entinty(content):
 	content.replace('杜甫','他')
 	return content
@@ -17,7 +17,7 @@ def find_subject(answer):
 	i=0
 	for item in an:
 		if item[2]=='nsubj':
-			if an[i][0]=='杜甫':
+			if an[i][0]=='雷军':
 				return i
 			else:
 				index=find_falsesubject(answer,i)
@@ -40,7 +40,7 @@ def find_answer(answer):
 	i=0
 	for item in an:
 		if item[2]=='nsubj':
-			if an[i][0]=='杜甫':
+			if an[i][0]=='雷军':
 				return [an]
 			else:
 				index=find_falsesubject(answer,i)
@@ -64,7 +64,7 @@ def insert_subject(answer):
 	i=0
 	for item in an:
 		if item[2]=='root':
-			an.insert(i,['杜甫',2,'nsubj','NR'])
+			an.insert(i,['雷军',2,'nsubj','NR'])
 			break
 		i=i+1
 	return an
@@ -116,10 +116,16 @@ def entity_recogition(answer):
 	re=find_answer(answer)
 	print('re为')
 	print(re)
-	an=re[0]
-	print(an)
-	index=find_subject(answer)
-	entity.append(an[index][0])
+	if re:
+		an=re[0]
+	else:
+		entity=None
+		return entity
+	index=find_subject(re)
+	if index==None:
+		entity.append(None)
+	else:
+		entity.append(an[index][0])
 	print(index)
 	sindex = find_start(re)
 	if sindex==None:
@@ -131,19 +137,34 @@ def entity_recogition(answer):
 	if i == None:
 		entity.append(None)
 	else:
-		entity.append(an[i][0])
+		if an[i][3] == 'NR':
+			entity.append(an[i][0])
+		else:
+			entity.append(identify_nn(answer))
 	return entity
 
-def event_re(answer):
+
+def identify_nn(answer):
 	an=answer[0]
-	event=[]
-
-
+	i=0
+	con=""
+	index=find_obj(answer)
+	rindex=find_start(answer)
+	connect=[]
+	for item in an:
+		if i<index and i>rindex:
+			if item[2]=='nn':
+				connect.append(item[0])
+		i=i+1
+	connect.append(an[index][0])
+	for item in connect:
+		con=con+item
+	return con
 
 answer=model(sentence,target="Parsing")
 #print(answer)
 an=answer[0]
-#sentence.replace('他','杜甫')
-#con=exchang_entinty(sentence)
-print(sentence.replace('他','杜甫'))
-
+sentence.replace('他','雷军')
+print(answer)
+print(identify_nn(answer))
+print(entity_recogition(answer))
