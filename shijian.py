@@ -33,7 +33,7 @@ def find_subject(answer):
 	i=0
 	for item in an:
 		if item[2]=='nsubj':
-			if an[i][0]=='雷军':
+			if an[i][0]=='杜甫':
 				return i
 			else:
 				index=find_falsesubject(answer,i)
@@ -56,7 +56,7 @@ def find_answer(answer):
 	i=0
 	for item in an:
 		if item[2]=='nsubj':
-			if an[i][0]=='雷军':
+			if an[i][0]=='杜甫':
 				return [an]
 			else:
 				index=find_falsesubject(answer,i)
@@ -79,7 +79,7 @@ def insert_subject(answer):
 	i=0
 	for item in an:
 		if item[2]=='root':
-			an.insert(i,['雷军',2,'nsubj','NR'])
+			an.insert(i,['杜甫',2,'nsubj','NR'])
 			break
 		i=i
 	return an
@@ -108,8 +108,6 @@ def find_start(answer):
 def entity_recogition(answer):
 	entity=[]
 	re=find_answer(answer)
-	print('re为')
-	print(re)
 	if re:
 		an=re[0]
 	else:
@@ -119,7 +117,6 @@ def entity_recogition(answer):
 		entity.append(None)
 	else:
 		entity.append(an[index][0])
-	print(index)
 	sindex = find_start(re)
 	if sindex==None:
 		print(sindex)
@@ -167,30 +164,35 @@ def identify_nn(answer):
 	index=find_obj(answer)
 	rindex=find_start(answer)
 	connect=[]
-	for item in an:
-		if i<index and i>rindex:
-			if item[2]=='nn':
-				connect.append(item[0])
-		i=i+1
-	connect.append(an[index][0])
+	if index != None and rindex != None:
+		for item in an:
+			if i<index and i>rindex:
+				if item[2]=='nn':
+					connect.append(item[0])
+			i=i+1
+		connect.append(an[index][0])
 	for item in connect:
 		con=con+item
 	return con
 
 
 
-content='受《硅谷之火》中创业故事影响，在大学四年级的时候，雷军开始和同学王全国、李儒雄等人创办三色公司。当时的产品是一种仿制金山汉卡，可是随后出现一家规模比他们更大的公司，把他们的产品盗版了，而且这家公司可以把同类的产品做得量更大，价格也更低。三色公司度日维艰，不要说公司运营，即使他们生活上也面临着等无米下锅的局面。半年以后，三色公司决定解散。清点公司资产时，雷军和王全国分到了一台286电脑和打印机，李儒雄分到了一台386电脑。在三色公司工作期间，雷军与王全国合作编写了雷军的第一个正式作品BITLOK 加密软件并组建了黄玫瑰小组；除此还用PASCAL编写免疫90，此产品获得了湖北省大学生科技成果一等奖。'
-content=content.replace('他','雷军')
+content='开元十九年（731年），十九岁的杜甫出游郇瑕（今山西临猗) 。二十岁时，杜甫漫游吴越，历时数年。开元二十三年（735年），杜甫回故乡参加“乡贡”。开元二十四年（736年），杜甫在洛阳参加进士考试，结果落第。杜甫的父亲时任兖州司马一职，杜甫于是赴兖州省亲，与苏源明等一起，到齐赵平原，作第二次漫游。大概这时他父亲正在兖州做司马，他在齐赵一带过了四五年“裘马轻狂”的“快意”生活，也留下了现存最早的几首诗：《登兖州城楼》，是省侍父亲于兖州时的作品；还有《画鹰》《房兵曹胡马》两首，以青年人的热情歌颂了雄鹰和骏马；还有一首《望岳》，更是其中的杰作，结尾的两句是流传千古的名句：“会当凌绝顶，一览众山小”，流露了诗人少年时代不平凡的抱负。天宝三载（744年）四月，杜甫在洛阳与被唐玄宗赐金放还的李白相遇，两人相约同游梁、宋（今河南开封、商丘一带）。会见了诗人高适，这是第三次漫游。之后，杜甫又到齐州（今山东济南）。天宝四载（745年），他在齐鲁又与李白相见，在饮酒赋诗之外，又讨论了炼丹求仙，而且共同访问了兖州城北的隐士范野人。'
+content=content.replace('他','杜甫')
 sentences = eassy_cut(content)
 del(sentences[-1])
-print(sentences)
+#print(sentences)
 knowg=[]
+graph = Graph('http://localhost:7474',auth=('neo4j','xx1314'))
+a = Node('Person',name='杜甫')
+graph.create(a)
 for item in sentences:
 	answer=model(item,target="Parsing")
-	print(answer)
 	an = answer[0]
 	ann = entity_recogition(answer)
 	knowg.append(ann)
-print(knowg)
-
+	b = Node('Entity', name=ann[2])
+	graph.create(b)
+	r = Relationship(a, ann[1], b)
+	graph.create(r)
 
