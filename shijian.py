@@ -94,7 +94,7 @@ def find_obj(answer):
 			break
 		i=i+1
 
-
+#找到触发词
 def find_start(answer):
 	an=answer[0]
 	i=0
@@ -157,6 +157,7 @@ def del_falsesubject(answer,i):
 		an.pop(0)
 	return an
 
+#在构建实体时，将实体信息尽可能完善，使nn类型词进行拼凑
 def identify_nn(answer):
 	an=answer[0]
 	i=0
@@ -175,6 +176,23 @@ def identify_nn(answer):
 		con=con+item
 	return con
 
+#创建知识图谱，参数为分割后的语料信息
+def creatkg(sentences):
+	graph = Graph('http://localhost:7474', auth=('neo4j', 'xx1314'))
+	a = Node('Person', name='杜甫')
+	graph.create(a)
+	knowg = []
+	for item in sentences:
+		answer = model(item, target="Parsing")
+		ann = entity_recogition(answer)
+		knowg.append(ann)
+		print(ann)
+		if (ann[2] is not '')and(ann[1] is not '')and(ann[1] is not None):
+			b = Node('Entity', name=ann[2])
+			graph.create(b)
+			r = Relationship(a, ann[1], b)
+			graph.create(r)
+	print(knowg)
 
 
 content='开元十九年（731年），十九岁的杜甫出游郇瑕（今山西临猗) 。二十岁时，杜甫漫游吴越，历时数年。开元二十三年（735年），杜甫回故乡参加“乡贡”。开元二十四年（736年），杜甫在洛阳参加进士考试，结果落第。杜甫的父亲时任兖州司马一职，杜甫于是赴兖州省亲，与苏源明等一起，到齐赵平原，作第二次漫游。大概这时他父亲正在兖州做司马，他在齐赵一带过了四五年“裘马轻狂”的“快意”生活，也留下了现存最早的几首诗：《登兖州城楼》，是省侍父亲于兖州时的作品；还有《画鹰》《房兵曹胡马》两首，以青年人的热情歌颂了雄鹰和骏马；还有一首《望岳》，更是其中的杰作，结尾的两句是流传千古的名句：“会当凌绝顶，一览众山小”，流露了诗人少年时代不平凡的抱负。天宝三载（744年）四月，杜甫在洛阳与被唐玄宗赐金放还的李白相遇，两人相约同游梁、宋（今河南开封、商丘一带）。会见了诗人高适，这是第三次漫游。之后，杜甫又到齐州（今山东济南）。天宝四载（745年），他在齐鲁又与李白相见，在饮酒赋诗之外，又讨论了炼丹求仙，而且共同访问了兖州城北的隐士范野人。'
@@ -182,17 +200,4 @@ content=content.replace('他','杜甫')
 sentences = eassy_cut(content)
 del(sentences[-1])
 #print(sentences)
-knowg=[]
-graph = Graph('http://localhost:7474',auth=('neo4j','xx1314'))
-a = Node('Person',name='杜甫')
-graph.create(a)
-for item in sentences:
-	answer=model(item,target="Parsing")
-	an = answer[0]
-	ann = entity_recogition(answer)
-	knowg.append(ann)
-	b = Node('Entity', name=ann[2])
-	graph.create(b)
-	r = Relationship(a, ann[1], b)
-	graph.create(r)
-
+creatkg(sentences)
